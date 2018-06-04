@@ -1,4 +1,4 @@
-package com.assignment.controller;
+package com.assignment.controllers;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
