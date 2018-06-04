@@ -5,7 +5,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.assignment.dao.DAO;
-import com.assignment.models.Employee;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @RestController
 public class EmployeeController {
@@ -14,6 +14,14 @@ public class EmployeeController {
 	
 	@GetMapping("employee")
 	public String getEmployee() {
-		return dao.getEmployee().toString();
+		String serial;
+		ObjectMapper mapper=new ObjectMapper();
+		try{
+			serial = mapper.writeValueAsString(dao.getEmployee());
+		} catch (Exception e) {
+			serial=dao.getEmployee().toString();
+		}
+		
+		return serial;
 	}
 }
