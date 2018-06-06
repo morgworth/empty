@@ -1,6 +1,9 @@
 package com.assignment.controller;
 
+import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -59,6 +62,14 @@ public class EmployeeController {
 	public ResponseEntity<Employee> updateEmployee(@RequestBody Employee employee){
 		service.updateEmployee(employee);
 		return new ResponseEntity<Employee>(employee,HttpStatus.ACCEPTED);
+	}
+	
+	@RequestMapping(value="/bulk-insert", method=RequestMethod.POST,headers= {"content-type=application/json"})
+	public ResponseEntity<List<Employee>> bulkInsert(@RequestBody List<Employee> toInsert){
+		
+		service.bulkInsert(toInsert);
+		
+		return new ResponseEntity<List<Employee>>(toInsert,HttpStatus.ACCEPTED);
 	}
 }
 
