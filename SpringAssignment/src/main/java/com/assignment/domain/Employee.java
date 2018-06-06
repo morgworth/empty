@@ -9,19 +9,24 @@ import org.springframework.stereotype.Component;
 @Component
 public class Employee {
 	private String firstName="Jane";
-	private String secondName="Doe";
+	private String lastName="Doe";
 	private int age=35;
 	private String dept="Sales";
 	@MongoId
 	private String id;
-	private List<Address> addresses=new LinkedList();
+	private List<Address> addresses=new LinkedList<>();
 	
-	public Employee(String firstName, String secondName, int age, String dept, String id) {
+	public Employee(String firstName, String secondName, int age, String dept, String id, List<Address> addresses) {
 		this.firstName = firstName;
-		this.secondName = secondName;
+		this.lastName = secondName;
 		this.age = age;
 		this.dept = dept;
 		this.id=id;
+		this.addresses=addresses;
+	}
+	
+	public Employee() {
+		
 	}
 	
 	public List<Address> getAddresses() {
@@ -39,10 +44,6 @@ public class Employee {
 	public void setId(String id) {
 		this.id = id;
 	}
-
-	public Employee() {
-		
-	}
 	
 	public String getFirstName() {
 		return firstName;
@@ -50,11 +51,11 @@ public class Employee {
 	public void setFirstName(String firstName) {
 		this.firstName = firstName;
 	}
-	public String getSecondName() {
-		return secondName;
+	public String getLastName() {
+		return lastName;
 	}
-	public void setSecondName(String secondName) {
-		this.secondName = secondName;
+	public void setLastName(String secondName) {
+		this.lastName = secondName;
 	}
 	public int getAge() {
 		return age;
