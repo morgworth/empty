@@ -3,14 +3,13 @@ package com.assignment.dao;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.bson.types.ObjectId;
 import org.jongo.Jongo;
 import org.jongo.MongoCollection;
 import org.jongo.MongoCursor;
 import org.jongo.Oid;
-import org.springframework.stereotype.Component;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.stereotype.Repository;
 
-import com.assignment.domain.Address;
 import com.assignment.domain.Employee;
 import com.mongodb.DB;
 import com.mongodb.MongoClient;
@@ -18,13 +17,13 @@ import com.mongodb.MongoClient;
 
 
 
-@Component
+@Repository
 public class DAO {
 	DB db= new MongoClient().getDB("SpringAssignmentDB");
 	Jongo jongo = new Jongo(db);
 	MongoCollection employees = jongo.getCollection("employees");
 
-	
+	@Cacheable(value="employee-cache", key="#root.method.name.concat(:).concat(#param)")
 	public List<Employee> getEmployeesByFirstName(String firstName) {
 		MongoCursor<Employee> emps=employees.find("{name:',"+firstName+"'}").as(Employee.class);
 		List<Employee> list= new LinkedList<>();
@@ -34,6 +33,7 @@ public class DAO {
 		return list;
 	}
 
+	@Cacheable(value="employee-cache", key="all-employees")
 	public List<Employee> getAll(){
 		MongoCursor<Employee> emps=employees.find("{}").as(Employee.class);
 		List<Employee> list = new LinkedList<>();
@@ -47,6 +47,7 @@ public class DAO {
 		employees.remove(Oid.withOid(id));
 	}
 	
+	@Cacheable(value="employee-cache", key="#root.method.name.concat(:).concat(#result.id)")
 	public Employee getEmployeeById(String id) {
 		return employees.findOne(Oid.withOid(id)).as(Employee.class);
 	}
@@ -73,6 +74,7 @@ public class DAO {
 		employees.insert(employee);
 	}
 
+	@Cacheable(value="employee-cache", key="#root.method.name.concat(:).concat(#result.id)")
 	public Employee updateEmployee(Employee updated) {
 		employees.update(Oid.withOid(updated.getId())).with("{$set: {"
 				+ "firstName:'"+updated.getFirstName()+"',"
