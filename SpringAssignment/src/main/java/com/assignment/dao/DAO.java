@@ -14,6 +14,10 @@ import com.assignment.domain.Employee;
 import com.mongodb.DB;
 import com.mongodb.MongoClient;
 
+import net.sf.ehcache.Cache;
+import net.sf.ehcache.CacheManager;
+import net.sf.ehcache.Element;
+
 
 
 
@@ -22,24 +26,30 @@ public class DAO {
 	DB db= new MongoClient().getDB("SpringAssignmentDB");
 	Jongo jongo = new Jongo(db);
 	MongoCollection employees = jongo.getCollection("employees");
+	
+	CacheManager cm = CacheManager.newInstance("src/main/resources/ehcache.xml");
+	Cache cache=cm.getCache("employee-cache");
+	
 
-	@Cacheable(value="employee-cache", key="#root.method.name.concat(:).concat(#param)")
 	public List<Employee> getEmployeesByFirstName(String firstName) {
 		MongoCursor<Employee> emps=employees.find("{name:',"+firstName+"'}").as(Employee.class);
 		List<Employee> list= new LinkedList<>();
 		while(emps.hasNext()) {
 			list.add(emps.next());
 		}
+		Element cacheElement=new Element("getEmployeesbyFirstName:"+firstName,list);
+		cache.put(cacheElement);
 		return list;
 	}
 
-	@Cacheable(value="employee-cache", key="all-employees")
 	public List<Employee> getAll(){
 		MongoCursor<Employee> emps=employees.find("{}").as(Employee.class);
 		List<Employee> list = new LinkedList<>();
 		while(emps.hasNext()) {
 			list.add(emps.next());
 		}
+		Element cacheElement=new Element("all-employees",list);
+		cache.put(cacheElement);
 		return list;
 	}
 	
@@ -49,7 +59,10 @@ public class DAO {
 	
 	@Cacheable(value="employee-cache", key="#root.method.name.concat(:).concat(#result.id)")
 	public Employee getEmployeeById(String id) {
-		return employees.findOne(Oid.withOid(id)).as(Employee.class);
+		Employee employee=employees.findOne(Oid.withOid(id)).as(Employee.class);
+		Element cacheElement=new Element("getEmployeeById:"+employee.getId(),employee);
+		cache.put(cacheElement);
+		return employee;
 	}
 	
 	public void addEmployee(Employee employee) {
@@ -74,7 +87,6 @@ public class DAO {
 		employees.insert(employee);
 	}
 
-	@Cacheable(value="employee-cache", key="#root.method.name.concat(:).concat(#result.id)")
 	public Employee updateEmployee(Employee updated) {
 		employees.update(Oid.withOid(updated.getId())).with("{$set: {"
 				+ "firstName:'"+updated.getFirstName()+"',"
@@ -83,6 +95,10 @@ public class DAO {
 				+ "dept:'"+updated.getDept()+"',"
 				+ "addresses:'"+updated.getAddresses()+"'}}"
 				);
+		
+		Element cacheElement=new Element("updateEmployee:"+updated.getId(),updated);
+		cache.put(cacheElement);
+		
 		return updated;
 	}
 }
