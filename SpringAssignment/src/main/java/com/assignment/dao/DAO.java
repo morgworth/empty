@@ -7,7 +7,6 @@ import org.jongo.Jongo;
 import org.jongo.MongoCollection;
 import org.jongo.MongoCursor;
 import org.jongo.Oid;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Repository;
 
 import com.assignment.domain.Employee;
@@ -46,18 +45,22 @@ public class DAO {
 		MongoCursor<Employee> emps=employees.find("{}").as(Employee.class);
 		List<Employee> list = new LinkedList<>();
 		while(emps.hasNext()) {
-			list.add(emps.next());
+			Employee emp=emps.next();
+			list.add(emp);
+			Element cacheElement= new Element(emp.getId(),emp);
+			cache.put(cacheElement);
 		}
-		Element cacheElement=new Element("all-employees",list);
-		cache.put(cacheElement);
+		
+		Element cacheElementList=new Element("all-employees",list);
+		cache.put(cacheElementList);
+		
 		return list;
 	}
 	
 	public void deleteEmployeeById(String id) {
-		employees.remove(Oid.withOid(id));
+		cache.remove(Oid.withOid(id));
 	}
 	
-	@Cacheable(value="employee-cache", key="#root.method.name.concat(:).concat(#result.id)")
 	public Employee getEmployeeById(String id) {
 		Employee employee=employees.findOne(Oid.withOid(id)).as(Employee.class);
 		Element cacheElement=new Element("getEmployeeById:"+employee.getId(),employee);
@@ -84,7 +87,11 @@ public class DAO {
 //		e.setAge(28);
 //		e.setDept("Engineering");
 //		employees.insert(e);
-		employees.insert(employee);
+		
+//		employees.insert(employee);
+		
+		Element cacheElement=new Element("addEmployee:"+employee.toString(),employee);
+		cache.put(cacheElement);
 	}
 
 	public Employee updateEmployee(Employee updated) {
