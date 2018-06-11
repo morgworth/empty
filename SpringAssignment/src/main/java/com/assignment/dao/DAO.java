@@ -7,7 +7,7 @@ import org.jongo.Jongo;
 import org.jongo.MongoCollection;
 import org.jongo.MongoCursor;
 import org.jongo.Oid;
-import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Component;
 
 import com.assignment.domain.Employee;
 import com.mongodb.DB;
@@ -20,24 +20,28 @@ import net.sf.ehcache.Element;
 
 
 
-@Repository
+@Component
 public class DAO {
 	DB db= new MongoClient().getDB("SpringAssignmentDB");
 	Jongo jongo = new Jongo(db);
 	MongoCollection employees = jongo.getCollection("employees");
 	
-	CacheManager cm = CacheManager.newInstance("src/main/resources/ehcache.xml");
-	Cache cache=cm.getCache("employee-cache");
-	
+	CacheManager cm = new CacheManager();
+	Cache cache;
+	{
+		cm.addCache("employee-cache");
+		cache=cm.getCache("employee-cache");
+	}
 
+	
 	public List<Employee> getEmployeesByFirstName(String firstName) {
 		MongoCursor<Employee> emps=employees.find("{name:',"+firstName+"'}").as(Employee.class);
 		List<Employee> list= new LinkedList<>();
 		while(emps.hasNext()) {
 			list.add(emps.next());
 		}
-		Element cacheElement=new Element("getEmployeesbyFirstName:"+firstName,list);
-		cache.put(cacheElement);
+
+		cache.put(new Element("getEmployeesByFirstName:"+firstName,list));
 		return list;
 	}
 
@@ -45,27 +49,20 @@ public class DAO {
 		MongoCursor<Employee> emps=employees.find("{}").as(Employee.class);
 		List<Employee> list = new LinkedList<>();
 		while(emps.hasNext()) {
-			Employee emp=emps.next();
+			Employee emp = emps.next();
 			list.add(emp);
-			Element cacheElement= new Element(emp.getId(),emp);
-			cache.put(cacheElement);
+			cache.put(new Element(emp.getId(),emp));
 		}
-		
-		Element cacheElementList=new Element("all-employees",list);
-		cache.put(cacheElementList);
-		
+		cache.put(new Element("all-employees",list));
 		return list;
 	}
 	
 	public void deleteEmployeeById(String id) {
-		cache.remove(Oid.withOid(id));
+		employees.remove(Oid.withOid(id));
 	}
 	
 	public Employee getEmployeeById(String id) {
-		Employee employee=employees.findOne(Oid.withOid(id)).as(Employee.class);
-		Element cacheElement=new Element("getEmployeeById:"+employee.getId(),employee);
-		cache.put(cacheElement);
-		return employee;
+		return employees.findOne(Oid.withOid(id)).as(Employee.class);
 	}
 	
 	public void addEmployee(Employee employee) {
@@ -87,11 +84,7 @@ public class DAO {
 //		e.setAge(28);
 //		e.setDept("Engineering");
 //		employees.insert(e);
-		
-//		employees.insert(employee);
-		
-		Element cacheElement=new Element("addEmployee:"+employee.toString(),employee);
-		cache.put(cacheElement);
+		employees.insert(employee);
 	}
 
 	public Employee updateEmployee(Employee updated) {
@@ -102,10 +95,6 @@ public class DAO {
 				+ "dept:'"+updated.getDept()+"',"
 				+ "addresses:'"+updated.getAddresses()+"'}}"
 				);
-		
-		Element cacheElement=new Element("updateEmployee:"+updated.getId(),updated);
-		cache.put(cacheElement);
-		
 		return updated;
 	}
 }
