@@ -116,6 +116,7 @@ public class DAO {
 
 	public void deleteEmployeeById(String id) {
 		cache1.remove(id);
+		cache2.remove(id);
 	}
 
 	public Employee getEmployeeById(String id) {
@@ -168,6 +169,7 @@ public class DAO {
 
 		Element cacheElement=new Element("addEmployee:"+employee.toString(),employee);
 		cache1.put(cacheElement);
+		cache2.put(cacheElement);
 	}
 
 	public Employee updateEmployee(Employee updated) {
@@ -181,6 +183,7 @@ public class DAO {
 
 		Element cacheElement=new Element("updateEmployee:"+updated.getId(),updated);
 		cache1.put(cacheElement);
+		cache2.put(cacheElement);
 
 		return updated;
 	}
