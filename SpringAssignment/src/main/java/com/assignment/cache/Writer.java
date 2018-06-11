@@ -38,13 +38,14 @@ public class Writer implements CacheWriter {
 
 	public void write(Element element) throws CacheException
 	{
-		employees.insert(element.getObjectValue());   
+		employees.save(element.getObjectValue());  
+
 	}
 
 	public void writeAll(Collection<Element> elements) throws CacheException
 	{
 		for (Element element : elements) {
-			employees.insert(element.getObjectValue()); 
+			write(element);
 		}
 	}
 

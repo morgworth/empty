@@ -54,29 +54,42 @@ public class DAO {
 
 
 	public List<Employee> getEmployeesByFirstName(String firstName) {
-		MongoCursor<Employee> emps=employees.find("{name:',"+firstName+"'}").as(Employee.class);
 		List<Employee> list= new LinkedList<>();
-		while(emps.hasNext()) {
-			list.add(emps.next());
+		//Element cacheElement=new Element("getEmployeesbyFirstName:"+firstName,list);
+		Element cacheElement=cache.get("getEmployeesbyFirstName:"+firstName);
+		if(cacheElement==null) {
+			System.out.println("Cache miss");
+			MongoCursor<Employee> emps=employees.find("{name:',"+firstName+"'}").as(Employee.class);
+			while(emps.hasNext()) {
+				list.add(emps.next());
+			}
+			cache.put(new Element("getEmployeesbyFirstName:"+firstName,list));
+		} else {
+			System.out.println("Cache hit");
+			list=(List<Employee>) cacheElement.getObjectValue();
 		}
-		Element cacheElement=new Element("getEmployeesbyFirstName:"+firstName,list);
-		cache.put(cacheElement);
 		return list;
 	}
 
 	public List<Employee> getAll(){
-		MongoCursor<Employee> emps=employees.find("{}").as(Employee.class);
+		
 		List<Employee> list = new LinkedList<>();
-		while(emps.hasNext()) {
-			Employee emp=emps.next();
-			list.add(emp);
-			Element cacheElement= new Element(emp.getId(),emp);
-			cache.put(cacheElement);
+		
+		Element cacheElement=cache.get("all-employees");
+		if(cacheElement==null) {
+			System.out.println("Cache miss");
+			MongoCursor<Employee> emps=employees.find("{}").as(Employee.class);
+			while(emps.hasNext()) {
+				Employee emp=emps.next();
+				list.add(emp);
+				cache.put(new Element(emp.getId(),emp));
+			}
+			cache.put(new Element("all-employees", list));
+		} else {
+			System.out.println("Cache hit");
+			list=(List<Employee>) cacheElement.getObjectValue();
 		}
-
-		Element cacheElementList=new Element("all-employees",list);
-		cache.put(cacheElementList);
-
+		
 		return list;
 	}
 
@@ -85,10 +98,18 @@ public class DAO {
 	}
 
 	public Employee getEmployeeById(String id) {
-		Employee employee=employees.findOne(Oid.withOid(id)).as(Employee.class);
-		Element cacheElement=new Element("getEmployeeById:"+employee.getId(),employee);
-		cache.put(cacheElement);
-		return employee;
+
+		Employee emp;
+		
+		Element cacheElement=cache.get(id);
+		if(cacheElement==null) {
+			System.out.println("Cache miss");
+			emp=employees.findOne(Oid.withOid(id)).as(Employee.class);
+		} else {
+			System.out.println("Cache hit");
+			emp=(Employee) cacheElement.getObjectValue();
+		}
+		return emp;
 	}
 
 	public void addEmployee(Employee employee) {
@@ -118,13 +139,13 @@ public class DAO {
 	}
 
 	public Employee updateEmployee(Employee updated) {
-		employees.update(Oid.withOid(updated.getId())).with("{$set: {"
-				+ "firstName:'"+updated.getFirstName()+"',"
-				+ "lastName:'"+updated.getLastName()+"',"
-				+ "age:"+updated.getAge()+","
-				+ "dept:'"+updated.getDept()+"',"
-				+ "addresses:'"+updated.getAddresses()+"'}}"
-				);
+		//		employees.update(Oid.withOid(updated.getId())).with("{$set: {"
+		//				+ "firstName:'"+updated.getFirstName()+"',"
+		//				+ "lastName:'"+updated.getLastName()+"',"
+		//				+ "age:"+updated.getAge()+","
+		//				+ "dept:'"+updated.getDept()+"',"
+		//				+ "addresses:'"+updated.getAddresses()+"'}}"
+		//				);
 
 		Element cacheElement=new Element("updateEmployee:"+updated.getId(),updated);
 		cache.put(cacheElement);
