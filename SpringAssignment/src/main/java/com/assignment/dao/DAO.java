@@ -19,7 +19,10 @@ import net.sf.ehcache.Element;
 import net.sf.ehcache.config.CacheConfiguration;
 import net.sf.ehcache.config.CacheWriterConfiguration;
 
-
+/*
+ * For reading in cache before DB, used code snippets from this video:
+ * https://www.youtube.com/watch?v=diJr2t4KmVw
+ */
 
 
 @Repository
@@ -29,7 +32,8 @@ public class DAO {
 	MongoCollection employees = jongo.getCollection("employees");
 
 	CacheManager cm = CacheManager.create();
-	Cache cache=cm.getCache("employee-cache");
+	Cache cache1=cm.getCache("employee-cache1");
+	Cache cache2=cm.getCache("employee-cache2");
 	{
 		//ehcache.xml couldn't be found earlier, set up within java instead here. 
 		//from this site:
@@ -55,17 +59,25 @@ public class DAO {
 
 	public List<Employee> getEmployeesByFirstName(String firstName) {
 		List<Employee> list= new LinkedList<>();
-		//Element cacheElement=new Element("getEmployeesbyFirstName:"+firstName,list);
-		Element cacheElement=cache.get("getEmployeesbyFirstName:"+firstName);
+		Element cacheElement=cache1.get("getEmployeesbyFirstName:"+firstName);
 		if(cacheElement==null) {
-			System.out.println("Cache miss");
-			MongoCursor<Employee> emps=employees.find("{name:',"+firstName+"'}").as(Employee.class);
-			while(emps.hasNext()) {
-				list.add(emps.next());
+			System.out.println("Cache Level 1 miss");
+			cacheElement=cache2.get("getEmployeesbyFirstName:"+firstName);
+			if(cacheElement==null) {
+				System.out.println("Cache Level 2 miss");
+				MongoCursor<Employee> emps=employees.find("{name:',"+firstName+"'}").as(Employee.class);
+				while(emps.hasNext()) {
+					list.add(emps.next());
+				}
+				cache1.put(new Element("getEmployeesbyFirstName:"+firstName,list));
+				cache2.put(new Element("getEmployeesbyFirstName:"+firstName,list));
+			} else {
+				System.out.println("Cache Level 2 hit");
+				cache1.put(cacheElement);
+				list=(List<Employee>) cacheElement.getObjectValue();
 			}
-			cache.put(new Element("getEmployeesbyFirstName:"+firstName,list));
 		} else {
-			System.out.println("Cache hit");
+			System.out.println("Cache Level 1 hit");
 			list=(List<Employee>) cacheElement.getObjectValue();
 		}
 		return list;
@@ -74,19 +86,28 @@ public class DAO {
 	public List<Employee> getAll(){
 		
 		List<Employee> list = new LinkedList<>();
-		
-		Element cacheElement=cache.get("all-employees");
+		Element cacheElement=cache1.get("all-employees");
 		if(cacheElement==null) {
-			System.out.println("Cache miss");
-			MongoCursor<Employee> emps=employees.find("{}").as(Employee.class);
-			while(emps.hasNext()) {
-				Employee emp=emps.next();
-				list.add(emp);
-				cache.put(new Element(emp.getId(),emp));
+			System.out.println("Cache Level 1 miss");
+			cacheElement=cache2.get("all-employees");
+			if(cacheElement==null) {
+				System.out.println("Cache Level 2 miss");
+				MongoCursor<Employee> emps=employees.find("{}").as(Employee.class);
+				while(emps.hasNext()) {
+					Employee emp=emps.next();
+					list.add(emp);
+					cache1.put(new Element(emp.getId(),emp));
+					cache2.put(new Element(emp.getId(),emp));
+				}
+				cache1.put(new Element("all-employees",list));
+				cache2.put(new Element("all-employees",list));
+			} else {
+				System.out.println("Cache Level 2 hit");
+				cache1.put(cacheElement);
+				list = (List<Employee>) cacheElement.getObjectValue();
 			}
-			cache.put(new Element("all-employees", list));
 		} else {
-			System.out.println("Cache hit");
+			System.out.println("Cache Level 1 hit");
 			list=(List<Employee>) cacheElement.getObjectValue();
 		}
 		
@@ -94,19 +115,30 @@ public class DAO {
 	}
 
 	public void deleteEmployeeById(String id) {
-		cache.remove(id);
+		cache1.remove(id);
 	}
 
 	public Employee getEmployeeById(String id) {
 
 		Employee emp;
 		
-		Element cacheElement=cache.get(id);
+		Element cacheElement=cache1.get(id);
 		if(cacheElement==null) {
-			System.out.println("Cache miss");
-			emp=employees.findOne(Oid.withOid(id)).as(Employee.class);
+			System.out.println("Cache Level 1 miss");
+			cacheElement=cache2.get(id);
+			if(cacheElement==null) {
+				System.out.println("Cache Level 2 miss");
+
+				emp=employees.findOne(Oid.withOid(id)).as(Employee.class);
+				cache1.put(new Element(emp.getId(),emp));
+				cache2.put(new Element(emp.getId(),emp));
+			} else {
+				System.out.println("Cache Level 2 hit");
+				emp=(Employee) cacheElement.getObjectValue();
+				cache1.put(new Element(emp.getId(),emp));
+			}	
 		} else {
-			System.out.println("Cache hit");
+			System.out.println("Cache Level 1 hit");
 			emp=(Employee) cacheElement.getObjectValue();
 		}
 		return emp;
@@ -135,7 +167,7 @@ public class DAO {
 		//		employees.insert(employee);
 
 		Element cacheElement=new Element("addEmployee:"+employee.toString(),employee);
-		cache.put(cacheElement);
+		cache1.put(cacheElement);
 	}
 
 	public Employee updateEmployee(Employee updated) {
@@ -148,7 +180,7 @@ public class DAO {
 		//				);
 
 		Element cacheElement=new Element("updateEmployee:"+updated.getId(),updated);
-		cache.put(cacheElement);
+		cache1.put(cacheElement);
 
 		return updated;
 	}
