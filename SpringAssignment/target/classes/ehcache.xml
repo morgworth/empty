@@ -1,0 +1,22 @@
+<ehcache xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:noNamespaceSchemaLocation="ehcache.xsd" updateCheck="true"
+	monitoring="autodetect" dynamicConfig="true">
+
+	<diskStore path="java.io.tmpdir" />
+
+	<cache name="employee-cache" maxEntriesLocalHeap="10000"
+		maxEntriesLocalDisk="1000" eternal="false" diskSpoolBufferSizeMB="20"
+		timeToIdleSeconds="300" timeToLiveSeconds="600"
+		memoryStoreEvictionPolicy="LFU" transactionalMode="off">
+		<persistence strategy="localTempSwap" />
+		<cacheWriter writeMode="write-behind" maxWriteDelay="8"
+			rateLimitPerSecond="5" writeCoalescing="true" writeBatching="true"
+			writeBatchSize="20" retryAttempts="2" retryAttemptDelaySeconds="2">
+			<cacheWriterFactory
+				class="com.assignment.cache.WriterFactory"
+				properties="just.some.property=test; another.property=test2"
+				propertySeparator=";" />
+		</cacheWriter>
+	</cache>
+
+</ehcache>

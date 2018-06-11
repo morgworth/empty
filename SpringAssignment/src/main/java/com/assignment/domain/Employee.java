@@ -69,4 +69,12 @@ public class Employee {
 	public void setDept(String dept) {
 		this.dept = dept;
 	}
+
+	@Override
+	public String toString() {
+		return "Employee [firstName=" + firstName + ", lastName=" + lastName + ", age=" + age + ", dept=" + dept
+				+ ", addresses=" + addresses + "]";
+	}
+	
+	
 }
