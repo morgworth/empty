@@ -29,6 +29,7 @@ public class RefreshJob implements Job {
 	public void execute(JobExecutionContext context) throws JobExecutionException {
 		cache2.removeAll();
 		dao.getAll();
+		//have to do this since level 1 may still be populated:
 		List<Employee> list = new LinkedList<>();
 		MongoCursor<Employee> emps=employees.find("{}").as(Employee.class);
 		while(emps.hasNext()) {
@@ -38,5 +39,4 @@ public class RefreshJob implements Job {
 		}
 		cache2.put(new Element("all-employees",list));
 	}
-
 }

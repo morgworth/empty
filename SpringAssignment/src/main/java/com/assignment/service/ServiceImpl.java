@@ -79,7 +79,6 @@ public class ServiceImpl implements Service {
 		
 		List<Employee> byZip=new LinkedList<>();
 		for(Employee emp:emps) {
-			Boolean inCity=false;
 			for(Address a:emp.getAddresses()) {
 				if(a.getZipcode().equals(zip)) {
 					byZip.add(emp);

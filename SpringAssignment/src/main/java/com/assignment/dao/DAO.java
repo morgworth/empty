@@ -3,7 +3,6 @@ package com.assignment.dao;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jongo.Jongo;
 import org.jongo.MongoCollection;
@@ -13,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import com.assignment.domain.Employee;
+import com.google.common.cache.LoadingCache;
 import com.mongodb.DB;
 import com.mongodb.MongoClient;
 
@@ -36,7 +36,10 @@ public class DAO {
 	Cache cache1;
 	@Autowired
 	Cache cache2;
-	Logger logger =LogManager.getLogger();
+	@Autowired
+	Logger logger;
+	@Autowired
+	LoadingCache<String,Object> guavaCache;
 
 	public List<Employee> getEmployeesByFirstName(String firstName) {
 		List<Employee> list= new LinkedList<>();
@@ -52,6 +55,7 @@ public class DAO {
 				}
 				cache1.put(new Element("getEmployeesbyFirstName:"+firstName,list));
 				cache2.put(new Element("getEmployeesbyFirstName:"+firstName,list));
+				guavaCache.put("getEmployeesbyFirstName:"+firstName,list);
 			} else {
 				logger.debug("Cache Level 2 hit");
 				cache1.put(cacheElement);
@@ -79,9 +83,11 @@ public class DAO {
 					list.add(emp);
 					cache1.put(new Element(emp.getId(),emp));
 					cache2.put(new Element(emp.getId(),emp));
+					guavaCache.put(emp.getId(),emp);
 				}
 				cache1.put(new Element("all-employees",list));
 				cache2.put(new Element("all-employees",list));
+				guavaCache.put("all-employees",list);
 			} else {
 				logger.debug("Cache Level 2 hit");
 				cache1.put(cacheElement);
@@ -114,6 +120,7 @@ public class DAO {
 				emp=employees.findOne(Oid.withOid(id)).as(Employee.class);
 				cache1.put(new Element(emp.getId(),emp));
 				cache2.put(new Element(emp.getId(),emp));
+				guavaCache.put(emp.getId(),emp);
 			} else {
 				logger.debug("Cache Level 2 hit");
 				emp=(Employee) cacheElement.getObjectValue();
@@ -151,6 +158,7 @@ public class DAO {
 		Element cacheElement=new Element("addEmployee:"+employee.toString(),employee);
 		cache1.put(cacheElement);
 		cache2.put(cacheElement);
+		guavaCache.put("addEmployee:"+employee.toString(),employee);
 	}
 
 	public Employee updateEmployee(Employee updated) {
@@ -165,7 +173,8 @@ public class DAO {
 		Element cacheElement=new Element("updateEmployee:"+updated.getId(),updated);
 		cache1.put(cacheElement);
 		cache2.put(cacheElement);
-
+		guavaCache.put("updateEmployee:"+updated.getId(),updated);
+		
 		return updated;
 	}
 }

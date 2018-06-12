@@ -1,6 +1,10 @@
 package com.assignment.config;
 
 
+import java.util.concurrent.TimeUnit;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.jongo.Jongo;
 import org.jongo.MongoCollection;
 import org.quartz.CronScheduleBuilder;
@@ -20,6 +24,9 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 
 import com.assignment.scheduler.RefreshJob;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import com.mongodb.DB;
 import com.mongodb.MongoClient;
 
@@ -39,6 +46,7 @@ public class AppConfig extends WebMvcConfigurerAdapter {
 		return jongo.getCollection("employees");
 	}
 
+	
 	CacheManager cm= CacheManager.create();
 	{
 		//ehcache.xml couldn't be found earlier, set up within java instead here. 
@@ -68,6 +76,25 @@ public class AppConfig extends WebMvcConfigurerAdapter {
 	@Bean
 	public Cache cache2() {
 		return cm.getCache("employee-cache-2");
+	}
+	
+	@Bean
+	LoadingCache<String,Object> guavaCache(){
+		//from this site:
+		//https://github.com/google/guava/wiki/CachesExplained
+		return CacheBuilder.newBuilder()
+			       .expireAfterAccess(3, TimeUnit.MINUTES)
+			       .build(
+			           new CacheLoader<String, Object>() {
+			             public Object load(String key) { // no checked exception
+			               return "input item into cache with key: "+key;
+			             }
+			           });
+	}
+	
+	@Bean
+	Logger logger() {
+		return LogManager.getLogger();
 	}
 
 	@Override
