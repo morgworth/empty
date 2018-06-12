@@ -15,7 +15,6 @@ import com.mongodb.DB;
 import com.mongodb.MongoClient;
 
 import net.sf.ehcache.Cache;
-import net.sf.ehcache.CacheManager;
 import net.sf.ehcache.Element;
 
 /*
@@ -36,27 +35,7 @@ public class DAO {
 	@Autowired
 	Cache cache2;
 	
-	{
-		//ehcache.xml couldn't be found earlier, set up within java instead here. 
-		//from this site:
-		//https://documentation.softwareag.com/onlinehelp/Rohan/terracotta_435/bigmemory-go/webhelp/index.html#page/bigmemory-go-webhelp/co-write_configuring_cache_writer.html
-		//		cache = new Cache( 
-		//				new CacheConfiguration("employee-cache", 1000) 
-		//				.cacheWriter(new CacheWriterConfiguration() 
-		//				.writeMode(CacheWriterConfiguration.WriteMode.WRITE_BEHIND) 
-		//				.maxWriteDelay(8) 
-		//				.rateLimitPerSecond(5) 
-		//				.writeCoalescing(true) 
-		//				.writeBatching(true) 
-		//				.writeBatchSize(20) 
-		//				.retryAttempts(2) 
-		//				.retryAttemptDelaySeconds(2) 
-		//				.cacheWriterFactory(new CacheWriterConfiguration.CacheWriterFactoryConfiguration() 
-		//				   .className("com.assignment.cache.WriterFactory") 
-		//				   .properties("just.some.property=test; another.property=test2") 
-		//				   .propertySeparator(";"))));
-		//		cm.addCache(cache);
-	}
+
 
 
 	public List<Employee> getEmployeesByFirstName(String firstName) {

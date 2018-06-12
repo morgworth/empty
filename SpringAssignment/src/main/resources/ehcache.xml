@@ -6,7 +6,7 @@
 
 	<cache name="employee-cache1" maxEntriesLocalHeap="10000"
 		maxEntriesLocalDisk="1000" eternal="false" diskSpoolBufferSizeMB="20"
-		timeToIdleSeconds="300" timeToLiveSeconds="300"
+		timeToIdleSeconds="120" timeToLiveSeconds="120"
 		memoryStoreEvictionPolicy="LFU" transactionalMode="off">
 		<persistence strategy="localTempSwap" />
 		<cacheWriter writeMode="write-through" maxWriteDelay="8"

@@ -3,6 +3,14 @@ package com.assignment.config;
 
 import org.jongo.Jongo;
 import org.jongo.MongoCollection;
+import org.quartz.CronScheduleBuilder;
+import org.quartz.JobBuilder;
+import org.quartz.JobDetail;
+import org.quartz.Scheduler;
+import org.quartz.SchedulerException;
+import org.quartz.Trigger;
+import org.quartz.TriggerBuilder;
+import org.quartz.impl.StdSchedulerFactory;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -11,6 +19,7 @@ import org.springframework.web.servlet.config.annotation.DefaultServletHandlerCo
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 
+import com.assignment.scheduler.RefreshJob;
 import com.mongodb.DB;
 import com.mongodb.MongoClient;
 
@@ -29,8 +38,6 @@ public class AppConfig extends WebMvcConfigurerAdapter {
 		Jongo jongo = new Jongo(db);
 		return jongo.getCollection("employees");
 	}
-
-	
 
 	CacheManager cm= CacheManager.create();
 	{
@@ -66,6 +73,21 @@ public class AppConfig extends WebMvcConfigurerAdapter {
 	@Override
 	public void configureDefaultServletHandling(DefaultServletHandlerConfigurer configurer) {
 		configurer.enable();
+	}
+	
+	//Schedule level 2 cache to refresh over a given time interval (here every 20 minutes), used the following tutorial:
+	//https://www.mkyong.com/java/quartz-2-scheduler-tutorial/
+	{
+		JobDetail job = JobBuilder.newJob(RefreshJob.class).withIdentity("refresh").build();
+		Trigger trigger=TriggerBuilder.newTrigger().withIdentity("refreshTrigger").withSchedule(CronScheduleBuilder.cronSchedule("*/20 * * * *")).build();
+		try {
+			Scheduler sched = new StdSchedulerFactory().getScheduler();
+			sched.start();
+			sched.scheduleJob(job,trigger);
+		} catch (SchedulerException e) {
+			e.printStackTrace();
+		}
+		
 	}
 
 }
