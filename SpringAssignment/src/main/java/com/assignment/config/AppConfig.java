@@ -74,7 +74,7 @@ public class AppConfig extends WebMvcConfigurerAdapter {
 	public void configureDefaultServletHandling(DefaultServletHandlerConfigurer configurer) {
 		configurer.enable();
 	}
-	
+
 	//Schedule level 2 cache to refresh over a given time interval (here every 20 minutes), used the following tutorial:
 	//https://www.mkyong.com/java/quartz-2-scheduler-tutorial/
 	{
@@ -87,7 +87,7 @@ public class AppConfig extends WebMvcConfigurerAdapter {
 		} catch (SchedulerException e) {
 			e.printStackTrace();
 		}
-		
+
 	}
 
 }

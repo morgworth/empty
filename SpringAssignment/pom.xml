@@ -13,7 +13,7 @@
 		<org.springframework-version>4.3.0.RELEASE</org.springframework-version>
 	</properties>
 	<dependencies>
-	
+
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-webmvc</artifactId>
@@ -35,7 +35,7 @@
 			<artifactId>jackson-databind</artifactId>
 			<version>2.6.3</version>
 		</dependency>
-		
+
 		<!-- MongoDB -->
 		<dependency>
 			<groupId>org.mongodb</groupId>
@@ -64,6 +64,11 @@
 			<artifactId>ehcache</artifactId>
 			<version>2.10.4</version>
 		</dependency>
+		<dependency>
+			<groupId>com.google.guava</groupId>
+			<artifactId>guava</artifactId>
+			<version>25.1-jre</version>
+		</dependency>
 		<!-- Scheduler -->
 		<dependency>
 			<groupId>org.quartz-scheduler</groupId>
@@ -75,7 +80,18 @@
 			<artifactId>quartz-jobs</artifactId>
 			<version>2.2.1</version>
 		</dependency>
-
+		<!-- Logging -->
+		<dependency>
+			<groupId>org.apache.logging.log4j</groupId>
+			<artifactId>log4j-api</artifactId>
+			<version>2.11.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.logging.log4j</groupId>
+			<artifactId>log4j-core</artifactId>
+			<version>2.11.0</version>
+		</dependency>
+		
 	</dependencies>
 
 	<build>
