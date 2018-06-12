@@ -7,6 +7,7 @@ import org.jongo.Jongo;
 import org.jongo.MongoCollection;
 import org.jongo.MongoCursor;
 import org.jongo.Oid;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import com.assignment.domain.Employee;
@@ -16,8 +17,6 @@ import com.mongodb.MongoClient;
 import net.sf.ehcache.Cache;
 import net.sf.ehcache.CacheManager;
 import net.sf.ehcache.Element;
-import net.sf.ehcache.config.CacheConfiguration;
-import net.sf.ehcache.config.CacheWriterConfiguration;
 
 /*
  * For reading in cache before DB, used code snippets from this video:
@@ -29,11 +28,14 @@ import net.sf.ehcache.config.CacheWriterConfiguration;
 public class DAO {
 	DB db= new MongoClient().getDB("SpringAssignmentDB");
 	Jongo jongo = new Jongo(db);
-	MongoCollection employees = jongo.getCollection("employees");
-
-	CacheManager cm = CacheManager.create();
-	Cache cache1=cm.getCache("employee-cache1");
-	Cache cache2=cm.getCache("employee-cache2");
+	
+	@Autowired
+	MongoCollection employees;
+	@Autowired
+	Cache cache1;
+	@Autowired
+	Cache cache2;
+	
 	{
 		//ehcache.xml couldn't be found earlier, set up within java instead here. 
 		//from this site:
