@@ -20,6 +20,7 @@ import org.springframework.web.servlet.view.JstlView;
 @ComponentScan(basePackages = "com.assignment")
 @EnableCaching
 public class AppConfig extends WebMvcConfigurerAdapter {
+	
 	@Bean
 	public ViewResolver viewResolver() {
 		InternalResourceViewResolver viewResolver = new InternalResourceViewResolver();
